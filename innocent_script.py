@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 from astropy import log
 import astropy.units as u
+from astropy.io import fits
 # those import warnings are annoying
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
@@ -166,12 +167,20 @@ pymultinest.run(nh3_model.xoff_symmetric_log_likelihood,
 
 if i_am_root() and plot_fit:
     # parse the results as sensible output
-    a = pymultinest.Analyzer(outputfiles_basename=chains_dir, n_params=npars)
+    from pyspecnest.chaincrunch import analyzer_xy
+    a = analyzer_xy(x, y, npeaks, output_dir=output_dir,
+                    name_id=name_id, npars=npars)
+
     a_lnZ = a.get_stats()['global evidence']
     log.info('ln(Z) for model with {} line(s) = {:.1f}'.format(npeaks, a_lnZ))
 
-    cubes = opencube.make_cube_shh()
-    lnZ0 = get_zero_evidence(data=cubes.cube, rms=cubes.errorcube, normalize=False)
+    try:
+        lnZ0 = fits.getdata('nested-sampling/ngc1333-Zs.fits')[0]
+    except (FileNotFoundError, OSError) as e:
+        cubes = opencube.make_cube_shh()
+        lnZ0 = get_zero_evidence(data=cubes.cube, rms=cubes.errorcube,
+                                 normalize=False)
+
     Zs = lnZ_xy(list(np.arange(npeaks+1)), x=x, y=y, output_dir=output_dir,
                 name_id=name_id, silent=True, lnZ0=(lnZ0[y, x], 0))
 
@@ -182,27 +191,6 @@ if i_am_root() and plot_fit:
 
 
 if plot_fit and i_am_root():
-    # plot the distribution of a posteriori possible models
-    fig_models, ax = plt.subplots(1, 1, figsize=(9,6))
-
-    # different chains in MultiNest mix velocity components together.
-    # let's sort the components by velocities to get better color
-    # coding when plotting individual components.
-    n = 10 # take every tenth model from the posterior distribution
-    xoff_ind = 1
-    # NOTE: due to some Jurassic programming the file names (with path!) are
-    #       limited to 100 characters in MultiNest! Orz Orz Orz #whowrotethis
-    # L28 @ posterior.F90: character(LEN=100)root
-    # ... so, anyway....
-    try:
-        ps = a.get_equal_weighted_posterior()[::n,:-1]
-    except (FileNotFoundError, OSError) as e:
-        resdir = os.path.sep.join(a.equal_weighted_file.split(os.path.sep)[:-1])
-        pew_file = [f for f in os.listdir(resdir)
-                    if '{}-post_eq'.format(npeaks) in f][0]
-        a.equal_weighted_file = os.path.join(resdir, pew_file)
-        ps = a.get_equal_weighted_posterior()[::n,:-1]
-
     sp.plotter(errstyle='fill')
 
     mle_pars = a.get_best_fit()['parameters']
