@@ -1,0 +1,16 @@
+*.fits
+*.con
+*.log
+*.png
+*.last
+
+# vim
+*.swp
+
+# Python
+*.pyc
+__pycache__
+.ipynb_checkpoints
+
+# other sampling results
+nested-sampling-wrong-baselines
