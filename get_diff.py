@@ -15,3 +15,14 @@ diff[Ks[1] < 5] = nan
 
 hdu_diff = fits.PrimaryHDU(diff, header=fits.getheader(mle_x2_file))
 hdu_diff.writeto('nested-sampling/mle2_xoff_diff.fits', overwrite=True)
+
+#plt.figure()
+#diff_good = diff.copy()
+#diff_okayiguess = diff.copy()
+#diff_bad = diff.copy()
+#diff_good[(Ks[0] < 5) | (Ks[1] < 5)] = np.nan
+#diff_okayiguess[(Ks[0] < 0) | (Ks[1] < 0)] = np.nan
+#plt.imshow(diff_bad, origin='lower', vmax=2, alpha=0.1)
+#plt.imshow(diff_okayiguess, origin='lower', vmax=2, alpha=0.6)
+#plt.imshow(diff_good, origin='lower', vmax=2, alpha=1)
+#plt.colorbar()
