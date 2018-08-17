@@ -193,7 +193,9 @@ if i_am_root() and plot_fit:
 if plot_fit and i_am_root():
     sp.plotter(errstyle='fill')
 
-    mle_pars = a.get_best_fit()['parameters']
+    mle_pars = pars_xy(x=x, y=y, npars=npars, npeaks=npeaks,
+                       output_dir=output_dir, name_id=name_id)
+
     mle_parinfo = sp.specfit.fitter._make_parinfo(mle_pars, npeaks=npeaks)[0]
 
     try:
