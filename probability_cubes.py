@@ -38,61 +38,40 @@ except (FileNotFoundError, OSError) as e:
     # takes a while to save as well
     np.save(post_file, resarray)
 
-nbins = 500
-vlsr_min, vlsr_max = 5.1, 9.9
-def histogramize(arr):
-    return np.histogram(arr[:, 6], density=True, bins=nbins,
-                        range=(vlsr_min, vlsr_max))
+def write_2dhist(fname, idx, nbins, vmin, vmax, ctype3='', cunit3=''):
+    def histogramize_post(arr):
+        return np.histogram(arr[:, idx+2], density=True, bins=nbins,
+                            range=(vmin, vmax))
 
-# very manageble
-vlsr_map = np.full(shape=((nbins,)+sort_arr.shape), fill_value=np.nan)
-histres = cubes.parallel_map(histogramize, resarray, numcores=multicore)
-for ((x, y), h) in zip(xylist, histres):
-    vlsr_map[:, y, x] = h[0]
+    post_map = np.full(shape=((nbins,)+sort_arr.shape), fill_value=np.nan)
+    histres = cubes.parallel_map(histogramize_post, resarray, numcores=multicore)
+    for ((x, y), h) in zip(xylist, histres):
+        post_map[:, y, x] = h[0]
 
-normed_vlsr_map = vlsr_map / np.nansum(vlsr_map, axis=0)
+    normed_post_map = post_map / np.nansum(post_map, axis=0)
 
-head = fits.getheader(bfactor_fname)
-head['CTYPE3'] = 'VELOCITY'
-head['CUNIT3'] = 'km/s'
-head['NAXIS3'] = nbins
-head['BUNIT'] = 'PROBABILITY MASS FUNCTION'
-head['CRPIX3'] = 1
-head['CRVAL3'] = vlsr_min
-head['CDELT3'] = (vlsr_max - vlsr_min) / nbins
-for key in ['PLANE1', 'PLANE2', 'PLANE3', 'PLANE4']:
-    head.pop(key)
+    head = fits.getheader(bfactor_fname)
+    head['CTYPE3'] = ctype3
+    head['CUNIT3'] = cunit3
+    head['NAXIS3'] = nbins
+    head['BUNIT'] = 'PROBABILITY MASS FUNCTION'
+    head['CRPIX3'] = 1
+    head['CRVAL3'] = vmin
+    head['CDELT3'] = (vmax - vmin) / nbins
+    for key in ['PLANE1', 'PLANE2', 'PLANE3', 'PLANE4']:
+        head.pop(key)
 
-# save to file
-hdu = fits.PrimaryHDU(data=normed_vlsr_map, header=head)
-hdu.writeto('vlsr_test.fits', overwrite=True)
+    hdu = fits.PrimaryHDU(data=normed_post_map, header=head)
+    hdu.writeto(fname, overwrite=True)
 
-
-# now let's do the same for kinetic temperature
-nbins = 500
-tkin_min, tkin_max = 2.725, 25
-def histogramize_tkin(arr):
-    return np.histogram(arr[:, 2], density=True, bins=nbins,
-                        range=(tkin_min, tkin_max))
-
-tkin_map = np.full(shape=((nbins,)+sort_arr.shape), fill_value=np.nan)
-histres = cubes.parallel_map(histogramize_tkin, resarray, numcores=multicore)
-for ((x, y), h) in zip(xylist, histres):
-    tkin_map[:, y, x] = h[0]
-
-normed_tkin_map = tkin_map / np.nansum(tkin_map, axis=0)
-
-head = fits.getheader(bfactor_fname)
-head['CTYPE3'] = 'TEMPERATURE'
-head['CUNIT3'] = 'K'
-head['NAXIS3'] = nbins
-head['BUNIT'] = 'PROBABILITY MASS FUNCTION'
-head['CRPIX3'] = 1
-head['CRVAL3'] = tkin_min
-head['CDELT3'] = (tkin_max - tkin_min) / nbins
-for key in ['PLANE1', 'PLANE2', 'PLANE3', 'PLANE4']:
-    head.pop(key)
-
-# testing
-hdu = fits.PrimaryHDU(data=normed_tkin_map, header=head)
-hdu.writeto('tkin_test.fits', overwrite=True)
+fname_fmt = 'probability-cubes/{}_x{}.fits'
+for fname, idx, nbins, vmin, vmax, ctype3, cunit3 in zip(
+        [fname_fmt.format(key, npeaks)
+            for key in ['tkin', 'ntot', 'sig', 'vlsr']],
+        [0, 2, 3, 4], [500]*4,
+        [3 , 12, 0.08, 5.1],
+        [24, 15, 1.00, 9.9],
+        ['KINETIC TEMPERATURE', 'COLUMN DENSITY',
+            'VELOCITY DISPERSION', 'CENTROID VELOCITY'],
+        ['K', 'cm-2', 'km s-1', 'km s-1']):
+    write_2dhist(fname, idx, nbins, vmin, vmax, ctype3, cunit3)
