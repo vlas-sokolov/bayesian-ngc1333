@@ -139,7 +139,7 @@ priors_xoff_transformed = (([[2.7315, 25], [2.7315, 25], [12.0, 15.0],
 priors = priors_xoff_transformed
 
 nh3_model = get_nh3_model(sp, ['oneone', 'twotwo'], sp.error,
-                          priors=priors, npeaks=npeaks, restrict_tex=True)
+                          priors=priors, npeaks=npeaks)
 
 # Safeguard - check some common causes of failure before scheduling
 # a job that would just throw tens of thousands of errors at us
