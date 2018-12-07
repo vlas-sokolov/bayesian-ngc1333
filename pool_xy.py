@@ -4,18 +4,17 @@ to simply distribute pixels to different processes via pooling. The speedup is
 not about the actual sampling, but the overheads are only executed once...
 """
 from __future__ import division
-from collections import OrderedDict
-from opencube import make_cube
-import multiprocessing
-import numpy as np
 import sys
-
 # the os.niceness will be inherited by child processes
 # behave, kids!
 import os
 os.nice(19)
-
+import multiprocessing
+from collections import OrderedDict
+import numpy as np
 from pyspecnest import pool_multinest
+from opencube import make_cube
+from config import file_Ks, sampler_script_file
 
 def try_get_args(n, fallback, forcetype=str):
     try:
@@ -45,8 +44,7 @@ def main():
         sort_array = spc.snrmap
     elif method == 'Bfactor':
         from astropy.io import fits
-        Kfile='nested-sampling/ngc1333-Ks.fits'
-        sort_array = fits.getdata(Kfile)[npeaks-2]
+        sort_array = fits.getdata(file_Ks)[npeaks-2]
     elif method == 'chisq':
         raise NotImplementedError
 
@@ -54,7 +52,7 @@ def main():
                 np.indices(sort_array.shape), cut=cut)
 
     tasks = pool_multinest.get_tasks(n_cpu, xy_order=order,
-            npeaks=npeaks, script='innocent_script.py')
+            npeaks=npeaks, script=sampler_script_file)
 
     pool = multiprocessing.Pool(processes=n_cpu)
     # NOTE: map vs imap? imap has better ordering... see more here:

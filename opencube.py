@@ -1,3 +1,5 @@
+""" All spectral cube I/O helper functions reside here """
+
 import os
 import warnings
 import pickle
@@ -7,14 +9,13 @@ from astropy import log
 import pyspeckit
 from pyspeckit import cubes
 from pyspeckit.spectrum.classes import units
-from pyspeckit.cubes import CubeStack, Cube
 
 
-def make_cube(files=['NGC1333_NH3_11_DR1_rebase3_trim.fits',
-                     'NGC1333_NH3_22_DR1_rebase3_trim.fits'],
+def make_cube(files=('NGC1333_NH3_11_DR1_rebase3_trim.fits',
+                     'NGC1333_NH3_22_DR1_rebase3_trim.fits'),
               data_dir='gasdata',
-              rms_files=['NGC1333_NH3_11_DR1_rebase3_rms_QA_trim.fits',
-                         'NGC1333_NH3_22_DR1_rebase3_rms_QA_trim.fits']):
+              rms_files=('NGC1333_NH3_11_DR1_rebase3_rms_QA_trim.fits',
+                         'NGC1333_NH3_22_DR1_rebase3_rms_QA_trim.fits')):
     """
     Opens the cube and calculates all the pre-fitting attributes of interest.
     """
@@ -29,17 +30,17 @@ def make_cube(files=['NGC1333_NH3_11_DR1_rebase3_trim.fits',
             spc_dict[f].errorcube = np.repeat([rmsmaps[f]],
                                         spc_dict[f].xarr.size, axis=0)
         # now the errorcubes should merge automatically
-        spc = CubeStack([spc_dict[f] for f in files])
+        spc = pyspeckit.CubeStack([spc_dict[f] for f in files])
         spc.xarr.refX = spc.cubelist[0].xarr.refX
         spc.xarr.refX_unit = spc.cubelist[0].xarr.refX_unit
     else:
-        spc = SubCube(files[0])
+        spc = pyspeckit.Cube(files[0])
         rms = fits.getdata(rms_files[0])
         # easier to handle everything get_spectrum-related
         spc.errorcube = np.repeat([rms], spc.xarr.size, axis=0)
 
     # I don't see a reason why errorcube should be a masked array
-    if type(spc.errorcube)==np.ma.MaskedArray:
+    if type(spc.errorcube) == np.ma.MaskedArray:
         spc.errorcube = np.array(spc.errorcube)
 
     spc.xarr.velocity_convention = 'radio'
@@ -94,7 +95,7 @@ def save_xarr(xarr, target_dir='', target_xarr='spc-xarr.npy',
     # save the actual xarr with all its irregularities, if any
     np.save(os.path.join(target_dir, target_xarr), xarr.value)
 
-    # pickel all the informative xarr attributes
+    # pickle all the informative xarr attributes
     xarrkwargs = {k:xarr.__getattribute__(k) for k in saved_xarrkwargs}
     with open(os.path.join(target_dir, target_xarrkwargs), 'wb') as f:
         pickle.dump(xarrkwargs, f)
@@ -137,8 +138,8 @@ def save_datacube(spc, target_dir='', target_cubefile='spc-data.npy',
     # TODO: should I implicitly require this to be present?
     try:
         np.save(os.path.join(target_dir, target_errfile), spc.errorcube)
-    except NotImplementedError: # really numpy?
-        assert type(spc.errorcube.data)==np.ndarray # errorcube is masked
+    except NotImplementedError: # really, numpy, really?
+        assert type(spc.errorcube.data) == np.ndarray # errorcube is masked
         np.save(os.path.join(target_dir, target_errfile), spc.errorcube.data)
 
     header = spc.header.copy()
@@ -150,19 +151,20 @@ def save_datacube(spc, target_dir='', target_cubefile='spc-data.npy',
 
 def _header_cube_to_spectrum(h, x, y):
     """ Taken from SpectralCube.get_spectrum for consistency """
+
     ct = 'CTYPE{0}'.format(h['CTARG'])
-    header = cubes.speccen_header(fits.Header(cards=[(k,v) for k,v in
-                                              h.items() if k!='HISTORY']),
+    header = cubes.speccen_header(fits.Header(cards=[(k, v) for k, v in
+                                              h.items() if k != 'HISTORY']),
                                   lon=x, lat=y, system=h['SYSTEM'],
                                   proj=(h[ct][-3:] if ct in h else 'CAR'))
     return header
 
 
 def get_spectrum(x, y, target_dir='', target_xarr='spc-xarr.npy',
-                target_xarrkwargs='spc-xarrkwargs.p',
-                target_cubefile='spc-data.npy',
-                target_errfile='spc-errors.npy',
-                target_header='header.p', mmap_mode='r', **kwargs):
+                 target_xarrkwargs='spc-xarrkwargs.p',
+                 target_cubefile='spc-data.npy',
+                 target_errfile='spc-errors.npy',
+                 target_header='header.p', mmap_mode='r', **kwargs):
     """
     Fast initialization of (X, Y) spectra from a spectral cube.
 

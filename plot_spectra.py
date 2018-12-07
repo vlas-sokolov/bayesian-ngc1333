@@ -1,9 +1,9 @@
-from opencube import make_cube_shh
-from pyspeckit.spectrum.units import SpectroscopicAxis
 import numpy as np
 from astropy import log
 import astropy.units as u
 from astropy.io import fits
+from pyspeckit.spectrum.units import SpectroscopicAxis
+from pyspeckit.spectrum.models.ammonia_constants import freq_dict
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 plt.rc('xtick', direction='in')
@@ -13,6 +13,8 @@ plt.rc('font', **{'family' : "sans-serif"})
 params = {'text.latex.preamble' : [r'\usepackage{amsmath}']}
 plt.rcParams.update(params)
 
+from opencube import make_cube_shh, update_model
+from config import file_mle_x1, file_mle_x2, file_Ks
 # the guys below are used to annotate npeaks map in make_presentable_Ks.py
 from spectra_xy_list import xlist, ylist, labels
 
@@ -24,16 +26,13 @@ split = True
 cbrews = ['#e41a1c', '#377eb8', '#984ea3', '#4daf4a'][::-1]
 
 spc = make_cube_shh()
-spc.update_model("cold_ammonia")
+update_model(spc, "cold_ammonia")
 
-mle_x1_file = 'nested-sampling/ngc1333-gas-mle-x1.fits'
-mle_x2_file = 'nested-sampling/ngc1333-gas-mle-x2.fits'
-Kfile = 'nested-sampling/ngc1333-Ks.fits'
 Kcut = 5 # the heuristical ln(Z1/Z2) cut for model selection
 
-x1_mle = fits.getdata(mle_x1_file)
-x2_mle = fits.getdata(mle_x2_file)
-Ks = fits.getdata(Kfile)
+x1_mle = fits.getdata(file_mle_x1)
+x2_mle = fits.getdata(file_mle_x2)
+Ks = fits.getdata(file_Ks)
 
 parcube = np.full_like(x2_mle, np.nan)
 parcube[:6, :, :] = x1_mle[:6, :, :]
@@ -59,16 +58,15 @@ else:
     axarr = np.array([axarr11, axarr22]).T
 
 # make the high-res xarr for models
-def highres_xarr(xarr, N, refX):
+def highres_xarr(xarr, N_res, refX):
     # make sure the 11 and 22 cubes are in GHz
     xarr.convert_to_unit(u.GHz)
-    xnparr = np.linspace(xarr.min(), xarr.max(), N)
+    xnparr = np.linspace(xarr.min(), xarr.max(), N_res)
     xarr_hires = SpectroscopicAxis(xarr=xnparr, refX=refX,
                     velocity_convention="radio")
     return xarr_hires
 
 N = 1000 # resolution for modelled spectra
-from pyspeckit.spectrum.models.ammonia_constants import freq_dict
 spc.cubelist[0].xarr.velocity_convention = "radio"
 spc.cubelist[1].xarr.velocity_convention = "radio"
 xarr11, xarr22 = spc.cubelist[0].xarr, spc.cubelist[1].xarr

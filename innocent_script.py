@@ -9,47 +9,31 @@ pymultinest.
 
 import os
 import sys
-import mpi4py
 import warnings
+import mpi4py
 import numpy as np
 from astropy import log
-import astropy.units as u
 from astropy.io import fits
 # Those import warnings are annoying
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
-    #import corner
     import pymultinest
-    # FIXME: cleanup ammonia wrapper file, why do we have corner kwargs in it?
     from pyspeckit.spectrum.models.ammonia import cold_ammonia_model
-    from pyspecnest.ammonia import get_nh3_model, get_corner_kwargs
-    from pyspeckit.spectrum.models.ammonia_constants import freq_dict
+    from pyspecnest.ammonia import get_nh3_model
     from pyspecnest.chaincrunch import pars_xy, lnZ_xy, get_zero_evidence
-# all the I/O functions now reside here
+
+# All the I/O functions now reside here
 import opencube
-
-# NOTE: change these lines into input arguments and you're good to go
-#       Don't forget to edit the priors and the cube I/O!
-lines = ['nh311', 'nh322']
-line_names = ['oneone', 'twotwo']
-npars = 6
-npeaks = 2
-name_id = 'ngc1333-gas'
-proj_dir = os.path.expanduser('~/Projects/ngc1333-gas/')
-
-# need the arguments below to save / load spectra
-# (making a SpectralCube each time is too slow!)
-iokwargs = dict(
-    target_dir=os.path.join(proj_dir, 'nested-sampling/cubexarr'),
-    target_xarr='{}-xarr.npy'.format(name_id),
-    target_xarrkwargs='{}-xarrkwargs.p'.format(name_id),
-    target_cubefile='{}-data.npy'.format(name_id),
-    target_errfile='{}-errors.npy'.format(name_id),
-    target_header='{}-header.p'.format(name_id),
-    mmap_mode='r')
-
-n_live_points = 400
-sampling_efficiency = 0.8
+# Configuration for line modelling setup (gets passed to pyspeckit)
+from config import line_names, npars
+# Path settings
+from config import name_id, proj_dir, file_Zs
+from config import default_yx, default_npeaks
+# Kwargs for digesing and saving spectral cube (making it on the
+# fly every time we need a spectrum is too slow!)
+from config import cube_save_kwargs
+# Finally, MultiNest settings and priors
+from config import n_live_points, sampling_efficiency, get_priors_xoff_wrapped
 
 
 def mpi_rank():
@@ -75,13 +59,13 @@ def i_am_root():
 try:
     npeaks = int(sys.argv[1])
 except IndexError:
-    npeaks = npeaks
+    npeaks = default_npeaks
     log.info("npeaks not specified, setting to {}".format(npeaks))
 
 try:
     yx = int(sys.argv[2]), int(sys.argv[3])
 except IndexError:
-    yx = (140, 112)
+    yx = default_yx
     log.info("xy-pixel not specified, setting to {}".format(yx[::-1]))
 
 try:
@@ -96,13 +80,12 @@ else: # defaults a for non-batch run
     plot_corner = True
     show_fit = True
     show_corner = True
-    from chainconsumer import ChainConsumer
+    from chainconsumer import ChainConsumer  # Optional if no plotting is done
     import matplotlib.pyplot as plt
     plt.rc('text', usetex=True)
 
-
 y, x = yx
-sp = opencube.get_spectrum(x, y, **iokwargs)
+sp = opencube.get_spectrum(x, y, **cube_save_kwargs)
 
 fittype_fmt = 'cold_ammonia_x{}'
 fitmodel = cold_ammonia_model
@@ -115,30 +98,13 @@ opencube.update_model(sp, fittype_fmt.format(npeaks))
 # https://github.com/pyspeckit/pyspeckit/issues/179
 sp.specfit.fitter.npeaks = npeaks
 # npeaks > 1 seems to break because of fitter.parnames is not mirrored
-if len(sp.specfit.fitter.parnames)==npars and npeaks > 1:
+if len(sp.specfit.fitter.parnames) == npars and npeaks > 1:
     sp.specfit.fitter.parnames *= npeaks
 
-# special considerations on the priors:
-#     - Temperatures: without a better knowledge, setting the priors to be as
-#                     wide as we expect them to be - T_CMB to 25 (upper bound
-#                     from the fact that we probably can't constrain it much
-#                     further from the ammonia level population)
-#     - Line widths: set the minimal FWHM to be velocity resolution, 0.07 km/s
-sig2fwhm = 2*(2*np.log(2))**0.5
-min_sigma = 0.07 / sig2fwhm
-#   - Total ammonia column: ranging from dex 12 to 15, for a typical NH3
-#       abundance of 1e-8 we're tracing H2 densities of 1e20 to 1e23
-#   - Vlsr - from prior knowledge of cloud kinematics
-dv_min, dv_max = 0.2, 3.0 # min/max separation of the velocity components
-dxoff_prior = [dv_min, dv_max]
-priors_xoff_transformed = (([[2.7315, 25], [2.7315, 25], [12.0, 15.0],
-           [min_sigma, 1], dxoff_prior, [0.05, 2]])[::-1] * (npeaks - 1)
-                          + [[2.7315, 25], [2.7315, 25], [12.0, 15.0],
-           [min_sigma, 1], [3, 10], [0.05, 1]][::-1])
 # TODO: make a wrapper function for pyspecnest instead!
-priors = priors_xoff_transformed
+priors = get_priors_xoff_wrapped(npeaks)
 
-nh3_model = get_nh3_model(sp, ['oneone', 'twotwo'], sp.error,
+nh3_model = get_nh3_model(sp, line_names, sp.error,
                           priors=priors, npeaks=npeaks)
 
 # Safeguard - check some common causes of failure before scheduling
@@ -163,7 +129,6 @@ if not os.path.exists(chains_dir):
     except OSError as e:
         if e.errno != 17:
             raise
-        pass
 
 chains_dir = '{}/{}-'.format(chains_dir, npeaks)
 
@@ -186,7 +151,7 @@ if i_am_root() and plot_fit:
     log.info('ln(Z) for model with {} line(s) = {:.1f}'.format(npeaks, a_lnZ))
 
     try:
-        lnZ0 = fits.getdata('nested-sampling/ngc1333-Zs.fits')[0]
+        lnZ0 = fits.getdata(file_Zs)[0]
     except (FileNotFoundError, OSError) as e:
         cubes = opencube.make_cube_shh()
         lnZ0 = get_zero_evidence(data=cubes.cube, rms=cubes.errorcube,
@@ -232,7 +197,7 @@ if plot_fit and i_am_root():
 if plot_corner and i_am_root():
     mle_multinest = pars_xy(x=x, y=y, npars=npars, npeaks=npeaks,
                             output_dir=output_dir, name_id=name_id)
-    unfrozen_slice = nh3_model.get_nonfixed_slice(a.data.shape, axis = 1)
+    unfrozen_slice = nh3_model.get_nonfixed_slice(a.data.shape, axis=1)
     c = ChainConsumer()
     parameters = nh3_model.get_names(latex=True, no_fixed=True)
     c.add_chain(a.data[:, 2:][unfrozen_slice], parameters=parameters)
