@@ -44,7 +44,8 @@ def write_2dhist(fname, idx, nbins, vmin, vmax, ctype3='', cunit3=''):
                             range=(vmin, vmax))
 
     post_map = np.full(shape=((nbins,)+sort_arr.shape), fill_value=np.nan)
-    histres = cubes.parallel_map(histogramize_post, resarray, numcores=multicore)
+    histres = cubes.parallel_map(histogramize_post, resarray,
+                                 numcores=multicore)
     for ((x, y), h) in zip(xylist, histres):
         post_map[:, y, x] = h[0]
 
@@ -64,14 +65,17 @@ def write_2dhist(fname, idx, nbins, vmin, vmax, ctype3='', cunit3=''):
     hdu = fits.PrimaryHDU(data=normed_post_map, header=head)
     hdu.writeto(fname, overwrite=True)
 
-fname_fmt = 'probability-cubes/{}_x{}.fits'
-for fname, idx, nbins, vmin, vmax, ctype3, cunit3 in zip(
-        [fname_fmt.format(key, npeaks)
-            for key in ['tkin', 'ntot', 'sig', 'vlsr']],
-        [0, 2, 3, 4], [500]*4,
-        [3 , 12, 0.08, 5.1],
-        [24, 15, 1.00, 9.9],
-        ['KINETIC TEMPERATURE', 'COLUMN DENSITY',
-            'VELOCITY DISPERSION', 'CENTROID VELOCITY'],
-        ['K', 'cm-2', 'km s-1', 'km s-1']):
-    write_2dhist(fname, idx, nbins, vmin, vmax, ctype3, cunit3)
+suff = {1: [''],
+        2: ['_1', '_2']}
+for i, s in enumerate(suff[npeaks]):
+    fname_fmt = 'probability-cubes/{}_x{}' + s + '.fits'
+    for fname, idx, nbins, vmin, vmax, ctype3, cunit3 in zip(
+            [fname_fmt.format(key, npeaks)
+                for key in ['tkin', 'ntot', 'sig', 'vlsr']],
+            [0, 2, 3, 4], [500]*4,
+            [3 , 12, 0.08, 5.1],
+            [24, 15, 1.00, 9.9],
+            ['KINETIC TEMPERATURE', 'COLUMN DENSITY',
+                'VELOCITY DISPERSION', 'CENTROID VELOCITY'],
+            ['K', 'cm-2', 'km s-1', 'km s-1']):
+        write_2dhist(fname, idx+i*npars, nbins, vmin, vmax, ctype3, cunit3)
