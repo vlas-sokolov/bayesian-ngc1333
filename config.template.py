@@ -11,6 +11,7 @@ When switching projects:
 import os
 
 # [Project Settings]
+sampler_script_file = 'innocent_script.py'
 name_id = 'ngc1333-gas'
 # If called from shell with no arguments, innocent_script.py will
 # revert to these parameters:
@@ -38,6 +39,15 @@ file_mle_formatter = os.path.join(chain_dir,
                                   '{}-gas-mle'.format(name_id)+'-x{}.fits')
 file_mle_x1 = file_mle_formatter.format(1) # that's prorbaly not the best way
 file_mle_x2 = file_mle_formatter.format(2) # that's prorbaly not the best way
+
+# [File Paths: GAS DR1 fits files]
+gasdata_dir = os.path.join(proj_dir, 'gasdata')
+file_nh311_dr1 = os.path.join(gasdata_dir, 'NGC1333_NH3_11_DR1_rebase3_trim.fits')
+file_nh322_dr1 = os.path.join(gasdata_dir, 'NGC1333_NH3_22_DR1_rebase3_trim.fits')
+file_rms_nh311_dr1 = os.path.join(gasdata_dir, 'NGC1333_NH3_11_DR1_rebase3_rms_QA_trim.fits')
+file_rms_nh322_dr1 = os.path.join(gasdata_dir, 'NGC1333_NH3_22_DR1_rebase3_rms_QA_trim.fits')
+file_sig_dr1 = os.path.join(gasdata_dir, 'NGC1333_Sigma_DR1_rebase3_flag.fits')
+file_esig_dr1 = os.path.join(gasdata_dir, 'NGC1333_eSigma_DR1_rebase3_flag.fits')
 
 # [Kwargs for saving data cube and xarr info (for lazy loading)]
 cube_save_kwargs = dict(

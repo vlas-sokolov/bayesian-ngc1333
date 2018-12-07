@@ -9,19 +9,17 @@ from astropy import log
 import pyspeckit
 from pyspeckit import cubes
 from pyspeckit.spectrum.classes import units
+from config import (file_nh311_dr1, file_nh322_dr1,
+                    file_rms_nh311_dr1, file_rms_nh322_dr1)
 
-
-def make_cube(files=('NGC1333_NH3_11_DR1_rebase3_trim.fits',
-                     'NGC1333_NH3_22_DR1_rebase3_trim.fits'),
-              data_dir='gasdata',
-              rms_files=('NGC1333_NH3_11_DR1_rebase3_rms_QA_trim.fits',
-                         'NGC1333_NH3_22_DR1_rebase3_rms_QA_trim.fits')):
+def make_cube(files=(file_nh311_dr1, file_nh322_dr1),
+              rms_files=(file_rms_nh311_dr1, file_rms_nh322_dr1)):
     """
     Opens the cube and calculates all the pre-fitting attributes of interest.
     """
-    # plug in data_dir and make sure we're working on arrays
-    files = np.atleast_1d([os.path.join(data_dir, f) for f in files])
-    rms_files = np.atleast_1d([os.path.join(data_dir, f) for f in rms_files])
+    # make sure we're working on arrays (why?)
+    files = np.atleast_1d([f for f in files])
+    rms_files = np.atleast_1d([f for f in rms_files])
 
     if files.size > 1:
         spc_dict = {f: pyspeckit.Cube(f) for f in files}
