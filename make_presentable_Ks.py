@@ -1,10 +1,13 @@
 """ Generating figures for the upcoming letter """
+
 import numpy as np
-from astropy.io import fits
 import matplotlib.pylab as plt
+from matplotlib.patches import Circle
 from matplotlib.colors import ListedColormap
-import aplpy
 from skimage import morphology
+from astropy.io import fits
+import aplpy
+from spectra_xy_list import xlist, ylist, labels
 
 # sane defaults for aplpy-generated figures
 plt.rc('xtick', direction='in')
@@ -123,7 +126,6 @@ fig.colorbar.set_ticks([0, 1, 2])
 fig.show_contour(gascontourfile, **gas_contour_kwargs)
 
 # nothing fancy follows - we've got to fine-tune all the arrows manually!
-from spectra_xy_list import xlist, ylist, labels
 ax = fig._ax1
 x1, x2, x3, x4, x5 = xlist
 y1, y2, y3, y4, y5 = ylist
@@ -160,9 +162,6 @@ ax.annotate(l5, xy=(x5+1, y5+1), xycoords='data',
                             connectionstyle="arc3, rad=-0.2",
                             alpha=0.8))
 
-
-
-from matplotlib.patches import Circle
 for (x, y) in zip(xlist, ylist):
     r = Circle((x+1, y+1), radius=.5, zorder=1, fc="0.8", ec="k", lw=0.2)
     ax.add_patch(r)
