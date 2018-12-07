@@ -1,13 +1,13 @@
+import os
 import warnings
+import pickle
+import numpy as np
+from astropy.io import fits
+from astropy import log
 import pyspeckit
 from pyspeckit import cubes
 from pyspeckit.spectrum.classes import units
-from multicube.subcube import SubCubeStack, SubCube
-from astropy.io import fits
-from astropy import log
-import numpy as np
-import pickle
-import os
+from pyspeckit.cubes import CubeStack, Cube
 
 
 def make_cube(files=['NGC1333_NH3_11_DR1_rebase3_trim.fits',
@@ -29,8 +29,7 @@ def make_cube(files=['NGC1333_NH3_11_DR1_rebase3_trim.fits',
             spc_dict[f].errorcube = np.repeat([rmsmaps[f]],
                                         spc_dict[f].xarr.size, axis=0)
         # now the errorcubes should merge automatically
-        # TODO: get rid of multicube here
-        spc = SubCubeStack([spc_dict[f] for f in files])
+        spc = CubeStack([spc_dict[f] for f in files])
         spc.xarr.refX = spc.cubelist[0].xarr.refX
         spc.xarr.refX_unit = spc.cubelist[0].xarr.refX_unit
     else:
@@ -203,7 +202,7 @@ def clean_saved(target_dir='', target_xarr='spc-xarr.npy',
 
 def update_model(sp, fit_type='gaussian'):
     """
-    Tie a model to a SubCube. Should work for all the standard
+    Tie a model to a Cube/CubeStack. Should work for all the standard
     fitters; others can be added with Cube.add_fitter method.
     """
     try:
