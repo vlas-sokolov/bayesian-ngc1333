@@ -24,5 +24,5 @@ def make_parcubes(peaks=(1, 2)):
                     mode='fast', stat='mle', **mle_kwargs)
 
 
-if '__name__' == '__main__':
+if __name__ == '__main__':
     make_parcubes(peaks=(1, 2))

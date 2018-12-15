@@ -34,5 +34,5 @@ def make_KZ_cubes(peaks=(0, 1, 2)):
     return hdu_K, hdu_Z
 
 
-if '__name__' == '__main__':
+if __name__ == '__main__':
     make_KZ_cubes([0, 1, 2])
