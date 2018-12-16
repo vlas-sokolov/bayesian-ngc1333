@@ -35,6 +35,11 @@ from config import cube_save_kwargs
 # Finally, MultiNest settings and priors
 from config import n_live_points, sampling_efficiency, get_priors_xoff_wrapped
 
+# Compatibility with Python 2.7
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
 
 def mpi_rank():
     """
@@ -161,7 +166,7 @@ if i_am_root() and plot_fit:
                 name_id=name_id, silent=True, lnZ0=(lnZ0[y, x], 0))
 
     log.info('ln(Z{}/Z{}) = {:.2f}'.format(npeaks, npeaks-1,
-                                        Zs[npeaks] - Zs[npeaks-1]))
+                                           Zs[npeaks] - Zs[npeaks-1]))
     if npeaks > 1:
         log.info('ln(Z{}/Z{}) = {:.2f}'.format(npeaks, 0, Zs[npeaks] - Zs[0]))
 
