@@ -11,7 +11,7 @@ When switching projects:
 import os
 
 # [Project Settings]
-sampler_script_file = 'innocent_script.py'
+sampler_script_file = 'innocent_script.py'  # Takes cmd arguments: NPEAKS, Y, X
 name_id = 'ngc1333-gas'
 # If called from shell with no arguments, innocent_script.py will
 # revert to these parameters:
@@ -28,7 +28,7 @@ line_names = ['oneone', 'twotwo']
 npars = 6
 
 # [Directory Paths]
-proj_dir = os.path.expanduser('~/Projects/ngc1333-gas/')
+proj_dir = os.path.expanduser('~/path-to-project-folder/bayesian-ngc1333/')
 chain_dir = os.path.join(proj_dir, 'nested-sampling/') # NOTE: needs ending "/"
 cube_storage_dir = os.path.join(proj_dir, 'nested-sampling/cubexarr')
 
@@ -36,7 +36,7 @@ cube_storage_dir = os.path.join(proj_dir, 'nested-sampling/cubexarr')
 file_Ks = os.path.join(chain_dir, 'ngc1333-Ks.fits')
 file_Zs = os.path.join(chain_dir, 'ngc1333-Zs.fits')
 file_mle_formatter = os.path.join(chain_dir,
-                                  '{}-gas-mle'.format(name_id)+'-x{}.fits')
+                                  '{}-mle'.format(name_id)+'-x{}.fits')
 file_mle_x1 = file_mle_formatter.format(1) # that's prorbaly not the best way
 file_mle_x2 = file_mle_formatter.format(2) # that's prorbaly not the best way
 
