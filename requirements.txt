@@ -1,0 +1,12 @@
+git+https://github.com/vlas-sokolov/pyspecnest.git
+#mpi4py
+pymultinest
+pyspeckit
+spectral_cube
+aplpy==1.1.1
+matplotlib
+numpy
+scipy
+astropy
+#chainconsumer # optional, for corner plots
+scikit-image # optional-ish, for "island" removal
