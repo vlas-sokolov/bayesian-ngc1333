@@ -32,11 +32,13 @@ The script hierarchy is as follows:
     * `y`, `x`: Y/X pixel coordinates of a target spectrum (defaults to `default_yx` in `config.py`)
     * `plotting`: a Boolean specifying whether perform automatic plotting after the sampling has finished (defaults to 0: no plotting)
 * A pool of processes is generated in the scheduling / parallelization [script](https://github.com/vlas-sokolov/bayesian-ngc1333/blob/master/pool_xy.py), which can invoke a batch sampling run, for example, as follows:
-        * `python pool_xy $NPEAKS $METHOD $CUT $NCPU`
-            * `$NPEAKS`: number of velocity components, defaults to 1.
-            * `$METHOD`: `snr` or `Bfactor`, sets ordering of the process schedule (e.g., with `snr` high SNR regions are processed first), defaults to `snr`.
-            * `$CUT`: stopping condition for the chosen method (e.g., method='snr' with cut=5 finishes when all SNR>5 pixels were sampled), defaults to 8.
-            * `$N_CPU`: number of CPUs to use, defaults to 7.
+    * `python pool_xy $NPEAKS $METHOD $CUT $NCPU` with the following arguments:
+        * `$NPEAKS`: number of velocity components, defaults to 1.
+        * `$METHOD`: `snr` or `Bfactor`, sets ordering of the process schedule (e.g., with `snr` high SNR regions are processed first), defaults to `snr`.
+        * `$CUT`: stopping condition for the chosen method (e.g., method='snr' with cut=5 finishes when all SNR>5 pixels were sampled), defaults to 8.
+        * `$N_CPU`: number of CPUs to use, defaults to 7.
+    * `make_parcubes.py` and `make_KZ_cubes.py` are generating FITS files with MLE parameter estimates and maps of `lnK` and`lnZ`, respectively.
+    * A sample plotting scripts of note is `make_presentable_Ks.py` (maps of Bayes factors, spectral multiplicity map), and `plot_spectra.py` (plots MLE parameters over selected spectra).
 
 A note on parallelization: the sampling script is fully compatible with
 Open MPI, meaning that one can run seven sampling processes in parallel
@@ -50,4 +52,4 @@ treated independently, the sampling of the cube is an [embarrassingly parallel
 problem](https://en.wikipedia.org/wiki/Embarrassingly_parallel), and the
 standard Python `multiprocessing` library is used for thread spawning.
 
-This code is released under an MIT open-source license.
+This code is released under an MIT open-source license. Contributions fitting the scope of the project are welcome, and bug reports can be filed in the Issues tab.
