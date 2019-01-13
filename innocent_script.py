@@ -29,7 +29,7 @@ from config import line_names, npars
 # Path settings
 from config import name_id, proj_dir, file_Zs
 from config import default_yx, default_npeaks
-# Kwargs for digesing and saving spectral cube (making it on the
+# Kwargs for digesting and saving spectral cube (making it on the
 # fly every time we need a spectrum is too slow!)
 from config import cube_save_kwargs
 # Finally, MultiNest settings and priors
