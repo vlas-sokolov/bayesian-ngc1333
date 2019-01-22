@@ -13,7 +13,7 @@ Requirements
 The `requirements.txt` file contains a complete list
 (`pip install -r requirements.txt` should do the job)
 
-* [pyspecnest](https://github.com/vlas-sokolov/pyspecnest) (to be made public soon), is needed for sampling and cube-oriented results collection.
+* [pyspecnest](https://github.com/vlas-sokolov/pyspecnest) is needed for sampling and cube-oriented results collection.
 * [pymultinest](https://johannesbuchner.github.io/PyMultiNest/install) and [pyspeckit](https://github.com/pyspeckit/pyspeckit) as base dependencies (`pyspecnest` is essentially a wrapper of the two)
 * Optional plotting dependencies used in imaging scripts:
     * [APLpy](https://github.com/aplpy/aplpy) for image plotting. A version of `1.1.1` (slightly older is fine too) is needed.
