@@ -34,7 +34,7 @@ The script hierarchy is as follows:
     * `y`, `x`: Y/X pixel coordinates of a target spectrum (defaults to `default_yx` in `config.py`)
     * `plotting`: a Boolean specifying whether perform automatic plotting after the sampling has finished (defaults to 0: no plotting)
 * A pool of processes is generated in the scheduling / parallelization [script](https://github.com/vlas-sokolov/bayesian-ngc1333/blob/master/pool_xy.py), which can invoke a batch sampling run, for example, as follows:
-    * `python pool_xy $NPEAKS $METHOD $CUT $NCPU` with the following arguments:
+    * `python pool_xy.py $NPEAKS $METHOD $CUT $NCPU` with the following arguments:
         * `$NPEAKS`: number of velocity components, defaults to 1.
         * `$METHOD`: `snr` or `Bfactor`, sets ordering of the process schedule (e.g., with `snr` high SNR regions are processed first), defaults to `snr`.
         * `$CUT`: stopping condition for the chosen method (e.g., method='snr' with cut=5 finishes when all SNR>5 pixels were sampled), defaults to 8.
