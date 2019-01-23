@@ -10,7 +10,7 @@ import pyspeckit
 from pyspeckit import cubes
 from pyspeckit.spectrum.classes import units
 from config import (file_nh311_dr1, file_nh322_dr1,
-                    file_rms_nh311_dr1, file_rms_nh322_dr1)
+                    file_rms_nh311_dr1, file_rms_nh322_dr1, cube_save_kwargs)
 
 def make_cube(files=(file_nh311_dr1, file_nh322_dr1),
               rms_files=(file_rms_nh311_dr1, file_rms_nh322_dr1)):
@@ -65,8 +65,9 @@ def make_cube_shh(**kwargs):
     return spc
 
 
-def save_xarr(xarr, target_dir='', target_xarr='spc-xarr.npy',
-              target_xarrkwargs='spc-xarrkwargs.p',
+def save_xarr(xarr, target_dir=cube_save_kwargs['target_dir'], 
+              target_xarr=cube_save_kwargs['target_xarr'],
+              target_xarrkwargs=cube_save_kwargs['target_xarrkwargs'],
               saved_xarrkwargs=[
                   'unit', 'refX', 'refX_unit', 'center_frequency',
                   'center_frequency_unit', 'velocity_convention'],
@@ -99,8 +100,10 @@ def save_xarr(xarr, target_dir='', target_xarr='spc-xarr.npy',
         pickle.dump(xarrkwargs, f)
 
 
-def load_xarr(target_dir='', target_xarr='spc-xarr.npy',
-              target_xarrkwargs='spc-xarrkwargs.p', **kwargs):
+def load_xarr(target_dir=cube_save_kwargs['target_dir'], 
+              target_xarr=cube_save_kwargs['target_xarr'],
+              target_xarrkwargs=cube_save_kwargs['target_xarrkwargs'],
+              **kwargs):
     """
     Restores a Spectroscopic instance saved by `save_xarr` function
     """
@@ -114,8 +117,11 @@ def load_xarr(target_dir='', target_xarr='spc-xarr.npy',
     return xarr
 
 
-def save_datacube(spc, target_dir='', target_cubefile='spc-data.npy',
-        target_errfile='spc-errors.npy', target_header='header.p',
+def save_datacube(spc, 
+        target_dir=cube_save_kwargs['target_dir'],
+        target_cubefile=cube_save_kwargs['target_cubefile'],
+        target_errfile=cube_save_kwargs['target_errfile'], 
+        target_header=cube_save_kwargs['target_header'],
         **kwargs):
     """
     In addition to SpectroscopicAxis, spectral cube data has to be accessed
@@ -158,11 +164,14 @@ def _header_cube_to_spectrum(h, x, y):
     return header
 
 
-def get_spectrum(x, y, target_dir='', target_xarr='spc-xarr.npy',
-                 target_xarrkwargs='spc-xarrkwargs.p',
-                 target_cubefile='spc-data.npy',
-                 target_errfile='spc-errors.npy',
-                 target_header='header.p', mmap_mode='r', **kwargs):
+def get_spectrum(x, y, 
+                 target_dir=cube_save_kwargs['target_dir'],
+                 target_xarr=cube_save_kwargs['target_xarr'],
+                 target_xarrkwargs=cube_save_kwargs['target_xarrkwargs'],
+                 target_cubefile=cube_save_kwargs['target_cubefile'],
+                 target_errfile=cube_save_kwargs['target_errfile'], 
+                 target_header=cube_save_kwargs['target_header'],
+                 mmap_mode='r', **kwargs):
     """
     Fast initialization of (X, Y) spectra from a spectral cube.
 
@@ -185,11 +194,13 @@ def get_spectrum(x, y, target_dir='', target_xarr='spc-xarr.npy',
     return sp
 
 
-def clean_saved(target_dir='', target_xarr='spc-xarr.npy',
-                target_xarrkwargs='spc-xarrkwargs.p',
-                target_cubefile='spc-data.npy',
-                target_errfile='spc-errors.npy',
-                target_header='header.p', **kwargs):
+def clean_saved(target_dir=cube_save_kwargs['target_dir'],
+                target_xarr=cube_save_kwargs['target_xarr'],
+                target_xarrkwargs=cube_save_kwargs['target_xarrkwargs'],
+                target_cubefile=cube_save_kwargs['target_cubefile'],
+                target_errfile=cube_save_kwargs['target_errfile'], 
+                target_header=cube_save_kwargs['target_header'],
+                **kwargs):
     """
     Removes the xarr files used by `save_xarr` and `load_xarr` functions
     """
