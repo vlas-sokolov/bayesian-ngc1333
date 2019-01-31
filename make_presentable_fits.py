@@ -53,7 +53,7 @@ sig_mle[Ks[0] > Kcut] = mle1[3][Ks[0] > Kcut]
 sig_dr1 = fits.getdata(file_sig_dr1)
 esig_dr1 = fits.getdata(file_esig_dr1)
 
-sig_dr1[sig_dr1==0] = np.nan
+sig_dr1[sig_dr1 == 0] = np.nan
 ###########~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~###########
 
 
@@ -62,7 +62,7 @@ npeaks_map[Ks[0] <= Kcut] = 0
 npeaks_map[Ks[0] > Kcut] = 1
 npeaks_map[(Ks[0] > Kcut) & (Ks[1] > Kcut)] = 2
 hdu_npeaks = fits.PrimaryHDU(npeaks_map,
-                header=header_flatten(fits.getheader(file_mle_x1)))
+                             header=header_flatten(fits.getheader(file_mle_x1)))
 hdu_npeaks.writeto('nested-sampling/npeaks_cut5.fits', overwrite=True)
 fig = aplpy.FITSFigure(hdu_npeaks)
 cmaplst = ['#f1f7d2', '#7fcdbb', '#2c7fb8'] # stolen from colorbrewer2
@@ -78,19 +78,20 @@ fig.show_contour(file_sig_dr1, levels=[0], linewidths=0.5, colors='black')
 fig.savefig("npeaks_map.png", dpi=140)
 
 # the ones below are the "overlapping" & "good" values
-sig_mle_x1 = sig_mle[np.isfinite(sig_dr1) & (npeaks_map==1)]
-sig_dr1_x1 = sig_dr1[np.isfinite(sig_dr1) & (npeaks_map==1)]
+sig_mle_x1 = sig_mle[np.isfinite(sig_dr1) & (npeaks_map == 1)]
+sig_dr1_x1 = sig_dr1[np.isfinite(sig_dr1) & (npeaks_map == 1)]
 # the DR1 results that were found to have two LoS components
-sig_dr1_x2_bad = sig_dr1[np.isfinite(sig_dr1) & (npeaks_map==2)]
+sig_dr1_x2_bad = sig_dr1[np.isfinite(sig_dr1) & (npeaks_map == 2)]
 # the MLE sigma values where two components are
-sig_mle_x2_good = np.hstack([mle2[3][npeaks_map==2], mle2[3][npeaks_map==2]])
+sig_mle_x2_good = np.hstack([mle2[3][npeaks_map == 2],
+                             mle2[3][npeaks_map == 2]])
 # the MLE sigma values where two components are
-sig_mle_x1_good = mle1[3][npeaks_map==1]
+sig_mle_x1_good = mle1[3][npeaks_map == 1]
 sig_mle_all_good = np.hstack([sig_mle_x1_good, sig_mle_x2_good])
 # all MLE results but depending on whether or not they were in GAS DR1
-sig_mle_over_x1_good = mle1[3][np.isfinite(sig_dr1) & (npeaks_map==1)]
-sig_mle_over_x2_good = np.hstack([mle2[3][np.isfinite(sig_dr1) & (npeaks_map==2)],
-                                  mle2[3][np.isfinite(sig_dr1) & (npeaks_map==2)]])
+sig_mle_over_x1_good = mle1[3][np.isfinite(sig_dr1) & (npeaks_map == 1)]
+sig_mle_over_x2_good = np.hstack([mle2[3][np.isfinite(sig_dr1) & (npeaks_map == 2)],
+                                  mle2[3][np.isfinite(sig_dr1) & (npeaks_map == 2)]])
 sig_mle_overall_good = np.hstack([sig_mle_over_x1_good, sig_mle_over_x2_good])
 
 
@@ -103,10 +104,17 @@ sig_mle_overall_good = np.hstack([sig_mle_over_x1_good, sig_mle_over_x2_good])
 histkwargs = dict(bins=80, alpha=0.5, range=(0, 1.4))
 
 plt.figure("How are the DR1 results biased by 2nd components?",
-           figsize=(11, 5))
+           figsize=(6, 5))
 plt.hist([sig_dr1_x1, sig_dr1_x2_bad], stacked=True,
-         label='Values fit on 2-component spectra taken out', **histkwargs)
+         label=[r'$\mathrm{GAS~DR1~data,~npeaks=1}$',
+                r'$\mathrm{GAS~DR1~data,~npeaks=2}$'], **histkwargs)
+plt.xlabel(r'$\mathrm{\sigma~(km~s^{-1})}$')
+plt.ylabel(r'$\mathrm{Pixel~count}$')
+plt.title(r'$\mathrm{Spectral~multiplicity~bias~'
+          r'in~GAS~DR1~velocity~dispersions}$')
+plt.xlim(0, None)
 plt.legend()
+plt.savefig("figs/hist_sigma_bias_dr1.pdf", dpi=140)
 plt.show()
 
 # Okay, so what does this one show?
@@ -114,24 +122,30 @@ plt.show()
 # that overlap on both GAS DR1 and my MLE results
 plt.figure("Overlapping values shown: Pearson's"
            " r={:.4}".format(pearsonr(sig_dr1_x1, sig_mle_x1)[0]),
-           figsize=(11, 5))
-plt.hist(sig_dr1_x1, label='GAS DR1', **histkwargs)
-plt.hist(sig_mle_x1, label='GAS MLE', **histkwargs)
+           figsize=(6, 5))
+plt.hist(sig_dr1_x1, label=r'$\mathrm{GAS~DR1,~best~fit}$', **histkwargs)
+plt.hist(sig_mle_x1, label=r'$\mathrm{GAS~(this~work),~MLE}$', **histkwargs)
+plt.xlabel(r'$\mathrm{\sigma~(km~s^{-1})}$')
+plt.ylabel(r'$\mathrm{Pixel~count}$')
+plt.title(r'$\mathrm{Velocity~dispersion~\sigma~from~'
+          r'overlapping~areas~(single~component)}$')
+plt.text(0.847, 450, r"$\mathrm{Pearson's}~r ="+f"{pearsonr(sig_dr1_x1, sig_mle_x1)[0]:.2f}"+'$')
+plt.xlim(0, None)
 plt.legend()
-plt.text(1.02, 500, 'Edge of the prior, sorry!', rotation=90)
-plt.axvline(1.0, ls=':', color='k')
+plt.savefig("figs/hist_sigma_correlation.pdf", dpi=140)
 plt.show()
 
-plt.figure("All MLE results, for npeaks=1 and npeaks=2",
-           figsize=(11, 5))
-plt.hist([sig_mle_x1_good, sig_mle_x2_good], stacked=True,
-         label='GAS MLE all', **histkwargs)
-plt.show()
+#plt.figure("All MLE results, for npeaks=1 and npeaks=2",
+#           figsize=(6, 5))
+#plt.hist([sig_mle_x1_good, sig_mle_x2_good], stacked=True,
+#         label='GAS MLE all', **histkwargs)
+#plt.show()
 
 
 plt.figure("What about extra values fit in lower S/N regions?",
-                   figsize=(11, 5))
+           figsize=(6, 5))
 plt.hist(sig_mle_all_good, label='All data', **histkwargs)
 plt.hist(sig_mle_overall_good, label='Overlapping', **histkwargs)
+plt.xlim(0, None)
 plt.legend()
 plt.show()
