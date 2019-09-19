@@ -1,7 +1,5 @@
 """ WIP on histogram-driven comparison with GAS DR1 results """
 
-# FIXME: This works only with aplpy==1.1.1, before it migrated to wcsaxes!
-
 import numpy as np
 from scipy.stats import pearsonr
 import matplotlib.pylab as plt
@@ -68,14 +66,15 @@ fig = aplpy.FITSFigure(hdu_npeaks)
 cmaplst = ['#f1f7d2', '#7fcdbb', '#2c7fb8'] # stolen from colorbrewer2
 lcmap = ListedColormap(cmaplst)
 fig.show_colorscale(cmap=lcmap, vmin=-0.5, vmax=2.5)
-fig._ax2.xaxis.set_tick_params('both', color='black')
-fig._ax2.yaxis.set_tick_params('both', color='black')
-fig._ax1.xaxis.set_tick_params('both', color='black')
-fig._ax1.yaxis.set_tick_params('both', color='black')
-fig.show_colorbar()
+# fig._ax2.xaxis.set_tick_params('both', color='black')
+# fig._ax2.yaxis.set_tick_params('both', color='black')
+# fig._ax1.xaxis.set_tick_params('both', color='black')
+# fig._ax1.yaxis.set_tick_params('both', color='black')
+fig.ticks.set_color('black') 
+fig.add_colorbar()
 fig.colorbar.set_ticks([0, 1, 2])
 fig.show_contour(file_sig_dr1, levels=[0], linewidths=0.5, colors='black')
-fig.savefig("npeaks_map.png", dpi=140)
+fig.savefig("figs/npeaks_map.pdf", dpi=140)
 
 # the ones below are the "overlapping" & "good" values
 sig_mle_x1 = sig_mle[np.isfinite(sig_dr1) & (npeaks_map == 1)]
@@ -115,7 +114,8 @@ plt.title(r'$\mathrm{Spectral~multiplicity~bias~'
 plt.xlim(0, None)
 plt.legend()
 plt.savefig("figs/hist_sigma_bias_dr1.pdf", dpi=140)
-plt.show()
+# plt.show()
+
 
 # Okay, so what does this one show?
 # Spectra with npeaks=1 but not npeaks=2 detection,
@@ -142,6 +142,44 @@ plt.show()
 #plt.show()
 
 
+from scipy import stats
+kde_dr1_np1 = stats.gaussian_kde(sig_dr1_x1)
+kde_dr1_np2 = stats.gaussian_kde(sig_dr1_x2_bad)
+kde_mle_np1 = stats.gaussian_kde(sig_mle_x1)
+
+color_np1='#377eb8'
+color_np2='#ff7f00'
+x_sample = np.arange(0.0, 1.4, 0.005)
+
+fig, ax = plt.subplots(figsize=(4, 8), nrows=2, ncols=1, sharex=True)
+plt.subplots_adjust(hspace=0.04)
+ax[0].plot( x_sample, kde_dr1_np1(x_sample), color=color_np1)
+ax[0].plot( x_sample, kde_dr1_np2(x_sample), color=color_np2)
+ax[0].text( 0.95, 0.85, r'$\mathrm{GAS~DR1~data,~npeaks=1}$', horizontalalignment='right', color=color_np1, transform=ax[0].transAxes)
+ax[0].text( 0.95, 0.80, r'$\mathrm{GAS~DR1~data,~npeaks=2}$', horizontalalignment='right', color=color_np2, transform=ax[0].transAxes)
+ax[0].set_ylabel(r'Probability Density')
+ax[0].set_xlim(0, 1.4)
+ax[0].set_ylim(0, None)
+
+text_xpos=0.50
+ax[1].plot( x_sample, kde_dr1_np1(x_sample), color=color_np1)
+ax[1].plot( x_sample, kde_mle_np1(x_sample), color=color_np2)
+ax[1].text( text_xpos, 0.85, r'$\mathrm{GAS~DR1,~best~fit}$', horizontalalignment='left', color=color_np1, transform=ax[1].transAxes)
+ax[1].text( text_xpos, 0.80, r'$\mathrm{GAS~(this~work),~MLE}$', horizontalalignment='left', color=color_np2, transform=ax[1].transAxes)
+ax[1].set_xlabel(r'$\mathrm{\sigma~(km~s^{-1})}$')
+ax[1].set_ylabel(r'Probability Density')
+ax[1].set_xlim(0, 1.4)
+ax[1].set_ylim(0, None)
+ax[1].text( text_xpos, 0.725, r"$\mathrm{Pearson's}~r ="+f"{pearsonr(sig_dr1_x1, sig_mle_x1)[0]:.2f}"+'$', horizontalalignment='left', transform=ax[1].transAxes)
+fig.savefig("figs/kde_sigma_composite.pdf", dpi=140, bbox_inches='tight')
+ax[0].text( 0.3, 0.85, '(a)', horizontalalignment='left', color='k', transform=ax[0].transAxes)
+ax[1].text( 0.3, 0.85, '(b)', horizontalalignment='left', color='k', transform=ax[1].transAxes)
+fig.savefig("figs/kde_sigma_composite_labels.pdf", dpi=140, bbox_inches='tight')
+plt.close()
+
+#
+#
+#
 plt.figure("What about extra values fit in lower S/N regions?",
            figsize=(6, 5))
 plt.hist(sig_mle_all_good, label='All data', **histkwargs)
