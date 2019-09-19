@@ -22,8 +22,9 @@ from spectra_xy_list import xlist, ylist, labels
 # or makes a joint figure for spectra only for `split = False`
 split = True
 
-# colors for spectral components
-cbrews = ['#e41a1c', '#377eb8', '#984ea3', '#4daf4a'][::-1]
+# colors for spectral components and their total
+cbrews = ['#377eb8', '#4daf4a', '#984ea3', '#ff7f00'][::-1]
+comp_sum_color = '#e41a1c'
 
 spc = make_cube_shh()
 update_model(spc, "cold_ammonia")
@@ -122,9 +123,9 @@ for x, y, (ax11, ax22), lab in zip(xlist, ylist, axarr, labels):
 
     # plot the total fit
     ax11.plot(h_xarr11.value, np.sum(h_11s, axis=0), lw=1.3,
-              color='k', ls=':', zorder=1)
+              color=comp_sum_color, ls=':', zorder=1)
     ax22.plot(h_xarr22.value, np.sum(h_22s, axis=0), lw=1.3,
-              color='k', ls=':', zorder=1)
+              color=comp_sum_color, ls=':', zorder=1)
 
     ax11.set_xlim(-15, 35)
     ax22.set_xlim(-2, 17)
