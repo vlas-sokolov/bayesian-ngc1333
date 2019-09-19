@@ -1,7 +1,7 @@
 """
 The main sampling script.
 
-Takes pixel positions (x, y) and the number of components (npeaks)
+Takes pixel positions (y, x) and the number of components (npeaks)
 from the command line (via sys.argv[]), sets the priors, the likelihood
 function, preforms some sanity checks, and fires up MultiNest through
 pymultinest.
