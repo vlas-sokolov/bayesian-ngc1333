@@ -2,6 +2,7 @@
 
 import numpy as np
 from scipy.stats import pearsonr
+from scipy import stats
 import matplotlib.pylab as plt
 from matplotlib.colors import ListedColormap
 from matplotlib import pyplot as plt
@@ -66,10 +67,6 @@ fig = aplpy.FITSFigure(hdu_npeaks)
 cmaplst = ['#f1f7d2', '#7fcdbb', '#2c7fb8'] # stolen from colorbrewer2
 lcmap = ListedColormap(cmaplst)
 fig.show_colorscale(cmap=lcmap, vmin=-0.5, vmax=2.5)
-# fig._ax2.xaxis.set_tick_params('both', color='black')
-# fig._ax2.yaxis.set_tick_params('both', color='black')
-# fig._ax1.xaxis.set_tick_params('both', color='black')
-# fig._ax1.yaxis.set_tick_params('both', color='black')
 fig.ticks.set_color('black') 
 fig.add_colorbar()
 fig.colorbar.set_ticks([0, 1, 2])
@@ -142,7 +139,7 @@ plt.show()
 #plt.show()
 
 
-from scipy import stats
+
 kde_dr1_np1 = stats.gaussian_kde(sig_dr1_x1)
 kde_dr1_np2 = stats.gaussian_kde(sig_dr1_x2_bad)
 kde_mle_np1 = stats.gaussian_kde(sig_mle_x1)
