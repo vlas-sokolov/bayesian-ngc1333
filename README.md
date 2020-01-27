@@ -7,6 +7,8 @@ data on NGC 1333. It includes the scripts for data import, spectral
 sampling, methods to parallelize the sampling on a spectral cube, and
 scripts for the collection and visualization of the results.
 
+Evidence / Bayes factor maps, as well as MLEs of parameter estimation are available at https://doi.org/10.7910/DVN/PDH6VT
+
 Requirements
 ------------
 
