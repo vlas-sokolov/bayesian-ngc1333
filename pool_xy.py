@@ -14,7 +14,10 @@ from collections import OrderedDict
 import numpy as np
 from pyspecnest import pool_multinest
 from opencube import make_cube
-from config import file_Ks, sampler_script_file
+from config import file_Ks, sampler_script_file, logs_dir
+
+pool_multinest.Config.log_dir = logs_dir
+
 
 def try_get_args(n, fallback, forcetype=str):
     try:
@@ -25,7 +28,8 @@ def try_get_args(n, fallback, forcetype=str):
 
     return arg
 
-def main():
+
+def batch_sample_xy():
     # NOTE: normal dict would mess up the order of the arguments
     default_args = OrderedDict([('npeaks', 1), ('method', 'snr'), ('cut', 8),
                                 ('n_cpu', 7)])
@@ -48,11 +52,11 @@ def main():
     elif method == 'chisq':
         raise NotImplementedError
 
-    order = pool_multinest.get_xy_sorted(sort_array,
-                np.indices(sort_array.shape), cut=cut)
+    order = pool_multinest.get_xy_sorted(
+        sort_array, np.indices(sort_array.shape), cut=cut)
 
-    tasks = pool_multinest.get_tasks(n_cpu, xy_order=order,
-            npeaks=npeaks, script=sampler_script_file)
+    tasks = pool_multinest.get_tasks(n_cpu, xy_order=order, npeaks=npeaks,
+                                     script=sampler_script_file)
 
     pool = multiprocessing.Pool(processes=n_cpu)
     # NOTE: map vs imap? imap has better ordering... see more here:
@@ -60,5 +64,6 @@ def main():
     # NOTE 2: imap won't work here...
     pool.map(pool_multinest.work, tasks)
 
+
 if __name__ == '__main__':
-    main()
+    batch_sample_xy()
