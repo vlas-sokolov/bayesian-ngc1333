@@ -30,6 +30,7 @@ npars = 6
 # [Directory Paths]
 proj_dir = os.path.expanduser('~/path-to-project-folder/bayesian-ngc1333/')
 chain_dir = os.path.join(proj_dir, 'nested-sampling/') # NOTE: needs ending "/"
+logs_dir = os.path.join(proj_dir, 'nested-sampling/logs/')
 cube_storage_dir = os.path.join(proj_dir, 'nested-sampling/cubexarr')
 
 # [File Paths]
