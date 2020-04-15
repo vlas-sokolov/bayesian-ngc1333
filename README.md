@@ -3,7 +3,7 @@ About
 
 This repository provides the code necessary to reproduce the
 nested sampling results on the Green Bank Ammonia Survey ([GAS](https://arxiv.org/abs/1704.06318))
-data on NGC 1333 (Sokolov et al., accepted to ApJL). It includes the scripts for data import, spectral
+data on NGC 1333 (Sokolov et al. 2020, [ApJL](https://iopscience.iop.org/article/10.3847/2041-8213/ab8018) / [arXiv](https://arxiv.org/abs/2003.07644)). It includes the scripts for data import, spectral
 sampling, methods to parallelize the sampling on a spectral cube, and
 scripts for the collection and visualization of the results.
 
